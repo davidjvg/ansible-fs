@@ -1,0 +1,34 @@
+---
+- name: Create LV and FS
+  hosts: workers
+  remote_user: root
+
+  tasks:
+  - name: Create a logical volume
+    lvol:
+      vg: software
+      lv: "{{ lv }}"
+      size: "{{ size }}"
+      active: yes
+      force: no
+      state: present
+
+
+  - name: Create a filesystem on lvm "/dev/mapper/software{{ lv }}".
+    filesystem:
+      fstype: ext4
+      dev: "/dev/software/{{ lv }}"
+      force: no
+
+  - name: Create directory 
+    file:
+      path: "{{ path }}"
+      state: directory
+
+  - name: Mount File System and adds it to fstab
+    mount:
+      path: "{{ path }}"
+      src: "/dev/mapper/software-{{ lv }}"
+      fstype: ext4
+      state: mounted
+
